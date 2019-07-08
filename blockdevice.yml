@@ -1,0 +1,90 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Mappings: 
+  RegionMap: 
+    us-east-1: 
+      AMI: "ami-087bd41c05dfea1b9"
+      TestAz: "us-east-1a"
+    us-west-2: 
+      AMI: "ami-a0cfeed8"
+      TestAz: "us-west-2a"
+Parameters: 
+  EnvType: 
+    Description: Environment type.
+    Default: test
+    Type: String
+    AllowedValues: 
+      - prod
+      - test
+    ConstraintDescription: must specify prod or test.
+Resources:
+  MyEIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      InstanceId: !Ref OTCSADM
+  OTCSADM: 
+    Type: "AWS::EC2::Instance"
+    Properties:
+      BlockDeviceMappings:
+        - DeviceName: /dev/sdf
+          Ebs:
+            DeleteOnTermination: false
+            VolumeSize: 50
+        - DeviceName: /dev/sdg
+          Ebs:
+            DeleteOnTermination: false
+            VolumeSize: 35
+      ImageId: !FindInMap [RegionMap, !Ref "AWS::Region", AMI]
+      InstanceType: m5d.xlarge
+      KeyName: mackey
+      UserData:
+        "Fn::Base64": !Sub |
+          #!/bin/bash -xe
+          #
+          # See: http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-using-volumes.html
+          #
+          # Make sure both volumes have been created AND attached to this instance !
+          #
+          # We do not need a loop counter in the "until" statements below because
+          # there is a 5 minute limit on the CreationPolicy for this EC2 instance already.
+
+          EC2_INSTANCE_ID=$(curl -s http://instance-data/latest/meta-data/instance-id)
+          yum install vim -y
+          yum install php -y
+          ######################################################################
+          # Volume /dev/sdh (which will get created as /dev/xvdh on Amazon Linux)
+
+          DATA_STATE="unknown"
+          until [ "${!DATA_STATE}" == "attached" ]; do
+            DATA_STATE=$(aws ec2 describe-volumes \
+              --region ${AWS::Region} \
+              --filters \
+                  Name=attachment.instance-id,Values=${!EC2_INSTANCE_ID} \
+                  Name=attachment.device,Values=/dev/sdf \
+              --query Volumes[].Attachments[].State \
+              --output text)
+
+            sleep 5
+          done
+
+          # Format /dev/xvdh if it does not contain a partition yet
+          if [ "$(file -b -s /dev/nvme1n1)" == "data" ]; then
+            mkfs -t xfs /dev/nvme1n1
+          fi
+
+          mkdir -p /app
+          mount /dev/nvme1n1 /app
+
+          # Persist the volume in /etc/fstab so it gets mounted again
+          echo '/dev/nvme1n1 /app xfs defaults,nofail 0 2' >> /etc/fstab
+
+
+
+
+
+
+
+# Outputs: 
+#   VolumeId: 
+#     # Condition: CreateProdResources
+#     Value: 
+#       !Ref NewVolume

@@ -1,0 +1,59 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Mappings: 
+  RegionMap: 
+    us-east-1: 
+      AMI: "ami-087bd41c05dfea1b9"
+      TestAz: "us-east-1a"
+    us-west-2: 
+      AMI: "ami-a0cfeed8"
+      TestAz: "us-west-2a"
+Parameters: 
+  EnvType: 
+    Description: Environment type.
+    Default: test
+    Type: String
+    AllowedValues: 
+      - prod
+      - test
+    ConstraintDescription: must specify prod or test.
+Resources:
+  OTCSADM: 
+    Type: "AWS::EC2::Instance"
+    Properties:
+      ImageId: !FindInMap [RegionMap, !Ref "AWS::Region", AMI]
+      AvailabilityZone: !FindInMap [RegionMap, !Ref "AWS::Region", TestAz]
+      InstanceType: m5d.xlarge
+      KeyName: mackey
+      Volumes:
+        - Device: /dev/xvdd
+          VolumeId: !Ref Storage01
+      Tags:
+        - Key: Name
+          Value: ssmpl-01
+      # UserData:
+      #   Fn::Base64: |
+      #     #cloud-config
+      #     bootcmd:
+      #       - mkdir -p /var/mqm
+      #       - while [ ! -b $(readlink -f /dev/xvdd) ]; do echo "waiting for device /dev/xvdd"; sleep 5 ; done
+      #       - blkid $(readlink -f /dev/xvdd) || mkfs -t ext4 $(readlink -f /dev/xvdd)
+      #       - e2label $(readlink -f /dev/xvdd) wmq-data
+      #       - grep -q ^LABEL=wmq-data /etc/fstab || echo 'LABEL=wmq-data /var/mqm ext4 defaults' >> /etc/fstab
+      #       - grep -q "^$(readlink -f /dev/xvdd) /var/mqm " /proc/mounts || mount /var/mqm
+
+  InstanceVolume01:
+    Type: AWS::EC2::VolumeAttachment
+    Properties:
+      Device: /dev/xvdd
+      InstanceId: !Ref OTCSADM
+      VolumeId: !Ref Storage01
+
+  Storage01:
+    Type: AWS::EC2::Volume
+    Properties:
+      Size: '10'
+      Encrypted: True
+      AvailabilityZone: !FindInMap [RegionMap, !Ref "AWS::Region", TestAz]
+      Tags:
+        - Key: Name
+          Value: storage01

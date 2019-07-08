@@ -1,0 +1,12 @@
+
+
+7 EC2 
+ - Each yml for 4 group of EC2
+ - create security group and dependencies via the output for the SG's
+ - Use EBS to mount for additional block storage
+ - 
+
+
+ALB:
+Secret Manager:
+2 RDS:
