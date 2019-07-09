@@ -29,6 +29,6 @@
     },
     {
         "Key": "Environment",
-        "Value": "UAT"
+        "Value": "DEV"
     }
 ]
