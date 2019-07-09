@@ -31,10 +31,9 @@ Parameters:
     Type: String
     Description: "Name of the keypair"
     Default: ava-debug
-  InstanceType:
+  OtcsFENInstanceType:
     Type: String
-    Description: "Name of the keypair"
-    Default: m5d.xlarge
+    Description: "EC2 instance type"
 
 Resources:
   OTCSFENSecurityGrp:
@@ -50,7 +49,7 @@ Resources:
     Type: "AWS::EC2::Instance"
     Properties:
       ImageId: !FindInMap [RegionMap, !Ref "AWS::Region", AMI]
-      InstanceType: !Ref InstanceType
+      InstanceType: !Ref OtcsFENInstanceType
       KeyName: !Ref Keyname
       SecurityGroupIds: 
         - !Ref OTCSFENSecurityGrp
@@ -90,7 +89,7 @@ Resources:
     Type: "AWS::EC2::Instance"
     Properties:
       ImageId: !FindInMap [RegionMap, !Ref "AWS::Region", AMI]
-      InstanceType: !Ref InstanceType
+      InstanceType: !Ref OtcsFENInstanceType
       KeyName: !Ref Keyname
       SecurityGroupIds: 
         - !Ref OTCSFENSecurityGrp
@@ -170,7 +169,7 @@ Resources:
   FENApplicationLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
-      Name: !Join [ '-', [ OTAC-FEN-alb, !Ref Environment] ]
+      Name: !Join [ '-', [ OTAC-FEN-alb, !Ref EnvType] ]
       Scheme: internet-facing # or internal
       Subnets: !Ref PublicSubnetIds
       SecurityGroups:

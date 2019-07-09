@@ -28,10 +28,9 @@ Parameters:
     Type: String
     Description: "Name of the keypair"
     Default: ava-debug
-  InstanceType:
+  OtcsOtacInstanceType:
     Type: String
     Description: "Name of the keypair"
-    Default: m5d.xlarge
 
 Resources:
   OTCSOTACSecurityGrp:
@@ -53,7 +52,7 @@ Resources:
     Type: "AWS::EC2::Instance"
     Properties:
       ImageId: !FindInMap [RegionMap, !Ref "AWS::Region", AMI]
-      InstanceType: !Ref InstanceType
+      InstanceType: !Ref OtcsOtacInstanceType
       KeyName: !Ref Keyname
       SecurityGroupIds: 
         - !Ref OTCSOTACSecurityGrp

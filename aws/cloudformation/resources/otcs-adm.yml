@@ -29,10 +29,9 @@ Parameters:
     Type: String
     Description: "Name of the keypair"
     Default: ava-debug
-  InstanceType:
+  OtcsAdmInstanceType:
     Type: String
     Description: "Name of the keypair"
-    Default: m5d.xlarge
 
 Resources:
   OTCSADMSecurityGrp:
@@ -42,20 +41,15 @@ Resources:
       GroupDescription: Enable SSH access via port 22
       SecurityGroupIngress:
       - CidrIp: 10.0.0.0/8
-        # FromPort: 22
         IpProtocol: -1
-        # ToPort: 22
-      # - CidrIp: 0.0.0.0/0
-      #   FromPort: 80
-      #   IpProtocol: tcp
-      #   ToPort: 80
+
 
   OTCSADM: 
     Type: "AWS::EC2::Instance"
     Properties:
       ImageId: !FindInMap [RegionMap, !Ref "AWS::Region", AMI]
-      InstanceType: !Ref InstanceType
-      KeyName: !Ref Keyname  ## this should be parameterised
+      InstanceType: !Ref OtcsAdmInstanceType
+      KeyName: !Ref Keyname
       SecurityGroupIds: 
         - !Ref OTCSADMSecurityGrp
       SubnetId: !Select [0, !Ref SubnetIds]

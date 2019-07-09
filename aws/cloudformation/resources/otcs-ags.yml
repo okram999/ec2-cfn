@@ -31,10 +31,9 @@ Parameters:
     Type: String
     Description: "Name of the keypair"
     Default: ava-debug
-  InstanceType:
+  OtcsAgsInstanceType:
     Type: String
     Description: "Name of the keypair"
-    Default: m5d.xlarge
 
 Resources:
   OTCSAGSSecurityGrp:
@@ -50,7 +49,7 @@ Resources:
     Type: "AWS::EC2::Instance"
     Properties:
       ImageId: !FindInMap [RegionMap, !Ref "AWS::Region", AMI]
-      InstanceType: !Ref InstanceType
+      InstanceType: !Ref OtcsAgsInstanceType
       KeyName: !Ref Keyname
       SecurityGroupIds: 
         - !Ref OTCSAGSSecurityGrp
@@ -90,7 +89,7 @@ Resources:
     Type: "AWS::EC2::Instance"
     Properties:
       ImageId: !FindInMap [RegionMap, !Ref "AWS::Region", AMI]
-      InstanceType: !Ref InstanceType
+      InstanceType: !Ref OtcsAgsInstanceType
       KeyName: !Ref Keyname
       SecurityGroupIds: 
         - !Ref OTCSAGSSecurityGrp
@@ -170,7 +169,7 @@ Resources:
   AGSApplicationLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
-      Name: !Join [ '-', [ OTAC-AGS-alb, !Ref Environment] ]
+      Name: !Join [ '-', [ OTAC-AGS-alb, !Ref EnvType] ]
       Scheme: internet-facing # or internal
       Subnets: !Ref PublicSubnetIds
       SecurityGroups:

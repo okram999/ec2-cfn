@@ -1,0 +1,80 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "OTAG OTCS SQL server database"
+Parameters:
+  VpcId:
+    Type: String
+    Description: "Id of the VPC to use"
+  DBName:
+    Type: String
+    Description: "Database name"
+    Default: pm-av-otag-otcs
+  # DBSubnetGroupName:
+  #   Type: String
+  #   Description: "Name of db subnet group"
+  EnvType: 
+    Description: EnvType type.
+    Default: DEV
+    Type: String
+    AllowedValues: 
+      - PROD
+      - UAT
+      - TEST
+      - DEV
+    ConstraintDescription: must specify prod or test.
+  OTAGOTCSRDSInstanceSecret:
+    Type: String
+    Description: "Secret id"
+  SubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: Select 3 private subnets in your selected VPC.
+    
+Conditions: 
+  CreateProdResources: !Equals [!Ref EnvType, PROD]
+
+Resources:
+  OTAGOTCSDBSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: "Security Group for access to SQL Server RDS instance"
+      VpcId: !Ref VpcId
+      GroupName: !Join [ '-', [ OTAGOTCSDB-Sg, !Ref EnvType] ]
+      SecurityGroupIngress:
+        - FromPort: '5432'
+          IpProtocol: tcp
+          ToPort: '5432'
+          CidrIp: 10.0.0.0/8
+
+  OTAGOTCSDBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties: 
+      DBSubnetGroupDescription: !Join [ '-', [ DBSubnetGrp, !Ref DBName, !Ref EnvType] ]
+      DBSubnetGroupName: !Join [ '-', [ DBSubnetGrp, !Ref DBName, !Ref EnvType] ]
+      SubnetIds: !Ref SubnetIds
+      Tags: 
+        -
+          Key: App
+          Value: AV2.0
+
+  SQLDB:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      BackupRetentionPeriod: 7
+      DeletionProtection: False
+      DBSubnetGroupName: !Ref OTAGOTCSDBSubnetGroup
+      DBInstanceIdentifier: !Join [ '-', [ !Ref DBName, !Ref EnvType] ]
+      AllocatedStorage: !If [CreateProdResources, 100,  50]
+      DBInstanceClass: !If [CreateProdResources, db.m4.xlarge,  db.m5.large]
+      Engine: postgres
+      EngineVersion: 10.7
+      AutoMinorVersionUpgrade: True
+      LicenseModel: postgresql-license
+      PubliclyAccessible: false
+      StorageType: !If [CreateProdResources, io1, gp2]
+      Iops: !If [CreateProdResources, 1000, !Ref "AWS::NoValue"]
+      MultiAZ: !If [CreateProdResources, True, !Ref "AWS::NoValue"]
+      StorageEncrypted: true
+      MasterUsername: !Join ['', ['{{resolve:secretsmanager:', !Ref OTAGOTCSRDSInstanceSecret, ':SecretString:username}}' ]]
+      MasterUserPassword: !Join ['', ['{{resolve:secretsmanager:', !Ref OTAGOTCSRDSInstanceSecret, ':SecretString:password}}' ]]
+      DBParameterGroupName: !If [CreateProdResources, pm-av-otacrds10-prod, pm-av-otacrds10-nonprod]
+      VPCSecurityGroups:
+        - !Ref OTAGOTCSDBSecurityGroup

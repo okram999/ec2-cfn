@@ -1,47 +1,138 @@
 AWSTemplateFormatVersion: "2010-09-09"
-Description: "Main CloudFormation Stack for the AVA application"
+Description: "Main CloudFormation Stack for the AssetView OpenText application Infra"
 Parameters:
   VpcId:
     Type: String
     Description: "Id of the VPC to use"
-  RDSTemplate:
+  OTCSADMTemplate:
     Type: String
-    Description: "Location of the template used to create all RDS related resources"
-  LogGroupName:
+    Description: "Location of the template"
+  OTCSAGSTemplate:
     Type: String
-    Description: Log Group name for API
+    Description: "Location of the template"
+  OTCSFENTemplate:
+    Type: String
+    Description: "Location of the template"
+  OTCSOTACTemplate:
+    Type: String
+    Description: "Location of the template"
+  OTCSOTDSTemplate:
+    Type: String
+    Description: "Location of the template"
+  OTACRDSTemplate:
+    Type: String
+    Description: "Location of the template"
+  OTAGOTCSRDSTemplate:
+    Type: String
+    Description: "Location of the template"
+  OtcsAdmInstanceType:
+    Type: String
+    Description: "EC2 instance type"
+  OtcsAgsInstanceType:
+    Type: String
+    Description: "EC2 instance type"
+  OtcsFENInstanceType:
+    Type: String
+    Description: "EC2 instance type"
+  OtcsOtacInstanceType:
+    Type: String
+    Description: "EC2 instance type"
+  OtcsOtdsInstanceType:
+    Type: String
+    Description: "EC2 instance type"
   SubnetIds:
-    Type: CommaDelimitedList
-    Description: Select at two public subnets in your selected VPC.
+    Type:  List<AWS::EC2::Subnet::Id>
+    Description: Private Platform Subnets
   PublicSubnetIds:
     Type: List<AWS::EC2::Subnet::Id>
-    Description: Select atleast two public subnets in your selected VPC for the ALB.
-  DBSubnetGroupName: 
+    Description: Public subnets for the ALB
+  EnvType:
     Type: String
-    Description: Database Subnet group name, need to look it up
-  DBName:
+    Description: "Environment for the deployment"
+  Keyname:
     Type: String
-    Description: "Database name"
-  SslCert:
+    Description: "Key name for the ec2 server"
+  OTACRDSInstanceSecret:
     Type: String
-    Description: SSL Cert for HTTPS listener
+    Description: "Secret id"
+  OTAGOTCSRDSInstanceSecret:
+    Type: String
+    Description: "Secret id"
+  # SslCert:
+  #   Type: String
+  #   Description: SSL Cert for HTTPS listener
 
 Resources:
-  ECSStack:
+  OTCSADM:
     Type: "AWS::CloudFormation::Stack"
     Properties:
-      TemplateURL: !Ref ECSTemplate
+      TemplateURL: !Ref OTCSADMTemplate
       Parameters:
         VpcId: !Ref VpcId
         SubnetIds: !Join [",", [!Select [0, !Ref SubnetIds], !Select [1, !Ref SubnetIds], !Select [2, !Ref SubnetIds]]]
+        EnvType: !Ref EnvType
+        Keyname: !Ref Keyname
+        OtcsAdmInstanceType: !Ref OtcsAdmInstanceType
+
+  OTCSAGS:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: !Ref OTCSAGSTemplate
+      Parameters:
+        VpcId: !Ref VpcId
         PublicSubnetIds: !Join [",", [!Select [0, !Ref PublicSubnetIds], !Select [1, !Ref PublicSubnetIds], !Select [2, !Ref PublicSubnetIds]]]
-        LogGroupName: !Ref LogGroupName
-        SslCert: !Ref SslCert
-  RDSStack:
-   Type: "AWS::CloudFormation::Stack"
-   Properties:
-     TemplateURL: !Ref RDSTemplate
-     Parameters:
-       VpcId: !Ref VpcId
-       DBSubnetGroupName: !Ref DBSubnetGroupName
-       DBName: !Ref DBName
+        SubnetIds: !Join [",", [!Select [0, !Ref SubnetIds], !Select [1, !Ref SubnetIds], !Select [2, !Ref SubnetIds]]]
+        EnvType: !Ref EnvType
+        Keyname: !Ref Keyname
+        OtcsAgsInstanceType: !Ref OtcsAgsInstanceType
+
+  OTCSFEN:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: !Ref OTCSFENTemplate
+      Parameters:
+        VpcId: !Ref VpcId
+        PublicSubnetIds: !Join [",", [!Select [0, !Ref PublicSubnetIds], !Select [1, !Ref PublicSubnetIds], !Select [2, !Ref PublicSubnetIds]]]
+        SubnetIds: !Join [",", [!Select [0, !Ref SubnetIds], !Select [1, !Ref SubnetIds], !Select [2, !Ref SubnetIds]]]
+        EnvType: !Ref EnvType
+        Keyname: !Ref Keyname
+        OtcsFENInstanceType: !Ref OtcsFENInstanceType
+
+  OTCSOTAC:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: !Ref OTCSOTACTemplate
+      Parameters:
+        VpcId: !Ref VpcId
+        SubnetIds: !Join [",", [!Select [0, !Ref SubnetIds], !Select [1, !Ref SubnetIds], !Select [2, !Ref SubnetIds]]]
+        EnvType: !Ref EnvType
+        Keyname: !Ref Keyname
+        OtcsOtacInstanceType: !Ref OtcsOtacInstanceType
+  OTCSOTDS:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: !Ref OTCSOTDSTemplate
+      Parameters:
+        VpcId: !Ref VpcId
+        SubnetIds: !Join [",", [!Select [0, !Ref SubnetIds], !Select [1, !Ref SubnetIds], !Select [2, !Ref SubnetIds]]]
+        EnvType: !Ref EnvType
+        Keyname: !Ref Keyname
+        OtcsOtdsInstanceType: !Ref OtcsOtdsInstanceType
+  OTACRDS:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: !Ref OTACRDSTemplate
+      Parameters:
+        VpcId: !Ref VpcId
+        SubnetIds: !Join [",", [!Select [0, !Ref SubnetIds], !Select [1, !Ref SubnetIds], !Select [2, !Ref SubnetIds]]]
+        EnvType: !Ref EnvType
+        OTACRDSInstanceSecret: !Ref OTACRDSInstanceSecret
+  OTAGOTCSRDS:
+    Type: "AWS::CloudFormation::Stack"
+    Properties:
+      TemplateURL: !Ref OTAGOTCSRDSTemplate
+      Parameters:
+        VpcId: !Ref VpcId
+        SubnetIds: !Join [",", [!Select [0, !Ref SubnetIds], !Select [1, !Ref SubnetIds], !Select [2, !Ref SubnetIds]]]
+        EnvType: !Ref EnvType
+        OTAGOTCSRDSInstanceSecret: !Ref OTAGOTCSRDSInstanceSecret
