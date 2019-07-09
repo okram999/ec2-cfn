@@ -1,0 +1,93 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Mappings: 
+  RegionMap: 
+    us-east-1: 
+      AMI: "ami-0e95e4dbc9cb6ac8d"
+      Az: "us-east-1a"
+    us-west-2: 
+      AMI: "ami-a0cfeed8"
+      Az: "us-west-2a"
+Parameters: 
+  EnvType: 
+    Description: Environment type.
+    Default: DEV
+    Type: String
+    AllowedValues: 
+      - PROD
+      - UAT
+      - TEST
+      - DEV
+    ConstraintDescription: must specify prod or test.
+  VpcId:
+    Type: String
+    Description: "Id of the VPC to use"
+  SubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: Select atleast a private subnets in your selected VPC.
+  Keyname:
+    Type: String
+    Description: "Name of the keypair"
+    Default: ava-debug
+  InstanceType:
+    Type: String
+    Description: "Name of the keypair"
+    Default: m5d.xlarge
+
+Resources:
+  OTCSOTDSSecurityGrp:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VpcId
+      GroupDescription: Enable SSH access via port 22
+      SecurityGroupIngress:
+      - CidrIp: 10.0.0.0/8
+        # FromPort: 22
+        IpProtocol: -1
+        # ToPort: 22
+      # - CidrIp: 0.0.0.0/0
+      #   FromPort: 80
+      #   IpProtocol: tcp
+      #   ToPort: 80
+
+  OTCSOTDS:
+    Type: "AWS::EC2::Instance"
+    Properties:
+      ImageId: !FindInMap [RegionMap, !Ref "AWS::Region", AMI]
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref Keyname
+      SecurityGroupIds: 
+        - !Ref OTCSOTDSSecurityGrp
+      SubnetId: !Select [0, !Ref SubnetIds]
+      Tags:
+        -
+          Key: Name
+          Value: !Join [ '-', [OTCSOTDS, !Ref EnvType] ]
+
+  MountPoint1: 
+    Type: "AWS::EC2::VolumeAttachment"
+    Properties: 
+      InstanceId: 
+        !Ref OTCSOTDS
+      VolumeId: 
+        !Ref app
+      Device: /dev/sdf
+
+  app: 
+    Type: "AWS::EC2::Volume"
+    Properties: 
+      Size: 60
+      AvailabilityZone: 
+        !GetAtt OTCSOTDS.AvailabilityZone
+      Tags:
+        -
+          Key: Name
+          Value: !Join [ '-', [OTCSOTDS, !Ref EnvType, /dev/sdf]]
+        -
+          Key: App
+          Value: AV2.0
+
+Outputs:
+  OTCSOTDSSecurityGrp:
+    Value:
+      !Ref OTCSOTDSSecurityGrp
+      

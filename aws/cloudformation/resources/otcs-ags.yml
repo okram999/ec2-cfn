@@ -1,0 +1,186 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Mappings: 
+  RegionMap: 
+    us-east-1: 
+      AMI: "ami-0e95e4dbc9cb6ac8d"
+      Az: "us-east-1a"
+    us-west-2: 
+      AMI: "ami-a0cfeed8"
+      Az: "us-west-2a"
+Parameters: 
+  EnvType: 
+    Description: Environment type.
+    Default: DEV
+    Type: String
+    AllowedValues: 
+      - PROD
+      - UAT
+      - TEST
+      - DEV
+    ConstraintDescription: must specify prod or test.
+  VpcId:
+    Type: String
+    Description: "Id of the VPC to use"
+  PublicSubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: Select atleast two public subnets in your selected VPC for the ALB.
+  SubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+    Description: Select 2 private subnets in your selected VPC.
+  Keyname:
+    Type: String
+    Description: "Name of the keypair"
+    Default: ava-debug
+  InstanceType:
+    Type: String
+    Description: "Name of the keypair"
+    Default: m5d.xlarge
+
+Resources:
+  OTCSAGSSecurityGrp:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId: !Ref VpcId
+      GroupDescription: Enable SSH access via port 22
+      SecurityGroupIngress:
+      - CidrIp: 10.0.0.0/8
+        IpProtocol: -1
+
+  OTCSAGS01:
+    Type: "AWS::EC2::Instance"
+    Properties:
+      ImageId: !FindInMap [RegionMap, !Ref "AWS::Region", AMI]
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref Keyname
+      SecurityGroupIds: 
+        - !Ref OTCSAGSSecurityGrp
+      SubnetId: !Select [0, !Ref SubnetIds]
+      Tags:
+        -
+          Key: Name
+          Value: !Join [ '-', [OTCSAGS01, !Ref EnvType] ]
+        -
+          Key: App
+          Value: AV2.0
+
+  MountPoint1: 
+    Type: "AWS::EC2::VolumeAttachment"
+    Properties: 
+      InstanceId: 
+        !Ref OTCSAGS01
+      VolumeId: 
+        !Ref appags1
+      Device: /dev/sdf
+
+  appags1: 
+    Type: "AWS::EC2::Volume"
+    Properties: 
+      Size: 60
+      AvailabilityZone: 
+        !GetAtt OTCSAGS01.AvailabilityZone
+      Tags:
+        -
+          Key: Name
+          Value: !Join [ '-', [OTCSAGS01, !Ref EnvType, /dev/sdf]]
+        -
+          Key: App
+          Value: AV2.0
+
+  OTCSAGS02:
+    Type: "AWS::EC2::Instance"
+    Properties:
+      ImageId: !FindInMap [RegionMap, !Ref "AWS::Region", AMI]
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref Keyname
+      SecurityGroupIds: 
+        - !Ref OTCSAGSSecurityGrp
+      SubnetId: !Select [1, !Ref SubnetIds]
+      Tags:
+        -
+          Key: Name
+          Value: !Join [ '-', [OTCSAGS02, !Ref EnvType] ]
+        -
+          Key: App
+          Value: AV2.0
+
+  MountPointFEN2: 
+    Type: "AWS::EC2::VolumeAttachment"
+    Properties: 
+      InstanceId: 
+        !Ref OTCSAGS02
+      VolumeId: 
+        !Ref appags2
+      Device: /dev/sdf
+
+  appags2: 
+    Type: "AWS::EC2::Volume"
+    Properties: 
+      Size: 60
+      AvailabilityZone: 
+        !GetAtt OTCSAGS02.AvailabilityZone
+      Tags:
+        -
+          Key: Name
+          Value: !Join [ '-', [OTCSAGS02, !Ref EnvType, /dev/sdf]]
+        -
+          Key: App
+          Value: AV2.0
+
+  AGSEC2TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      HealthCheckIntervalSeconds: 30
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 15
+      HealthyThresholdCount: 5
+      Matcher:
+        HttpCode: '200'
+      Name: !Join [ '-', [AGSEC2TargetGroup, !Ref EnvType]]
+      Port: 80
+      Protocol: HTTP
+      TargetGroupAttributes:
+      - Key: deregistration_delay.timeout_seconds
+        Value: '20'
+      Targets:
+      - Id:
+          Ref: OTCSAGS01
+        Port: 80
+      - Id:
+          Ref: OTCSAGS02
+        Port: 80
+      UnhealthyThresholdCount: 3
+      VpcId:
+        Ref: 'VpcId'
+      Tags:
+      - Key: App
+        Value: AV2.0
+
+  AGSALBListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn:
+            Ref: AGSEC2TargetGroup
+      LoadBalancerArn:
+          Ref: AGSApplicationLoadBalancer
+      Port: 80
+      Protocol: HTTP
+
+  AGSApplicationLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: !Join [ '-', [ OTAC-AGS-alb, !Ref Environment] ]
+      Scheme: internet-facing # or internal
+      Subnets: !Ref PublicSubnetIds
+      SecurityGroups:
+      - Ref: OTCSAGSSecurityGrp
+      Tags:
+      - Key: App
+        Value: AV2.0
+
+Outputs:
+  OTCSAGSSecurityGrp:
+    Value:
+      !Ref OTCSAGSSecurityGrp
+      

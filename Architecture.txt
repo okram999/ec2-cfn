@@ -10,3 +10,21 @@
 ALB:
 Secret Manager:
 2 RDS:
+
+
++++++++++++++++++++++++++++++++++++++++
+
+7 EC2 vm's:
+    1. OTDS   -- /app 60GB
+    2. OTAC --    "APP (/app): 60 GB, BUFFER_01 (/buffer): 200 GB, ARCHIVE_01 (/arc): 2 TB"
+    3. OTCS-ADM -- "APPS (/app): 100 GB, CS_EFS (/cs_efs on SSD): 100 GB, CS_INDEX (/cs_index on SSD): 150 GB,                      CS_INDEX_BACKUP (/cs_index_backup): 100 GB, MIGRATION_STAGING (/migration): 2 TB"
+    4. OTCS-FEN (2 count) APPS (/app): 60 GB each
+    5. OTCS-AGS (2 count) APPS (/app): 60 GB
+
+2 RDS instances:
+    1. 10.7 [ otag-otcs ]
+    2. 9.6.12 [ otac ]
+
+2 ALB's infront of OTCS-FEN & OTCS-AGS? What will be the domain name of prod?
+
+
