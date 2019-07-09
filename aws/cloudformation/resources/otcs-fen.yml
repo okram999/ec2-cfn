@@ -1,4 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
+Description: "CloudFormation Stack for OTCS-FEN EC2"
 Mappings: 
   RegionMap: 
     us-east-1: 

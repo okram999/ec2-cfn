@@ -5,31 +5,31 @@
     },
     {
         "ParameterKey": "OTCSADMTemplate",
-        "ParameterValue": "https://s3.amazonaws.com/pm-av-opentext-templates-us-east-1-uat/cloudformation/uat/otcs-adm.yml"
+        "ParameterValue": "https://s3.amazonaws.com/pm-av-opentext-templates-us-east-1-test/cloudformation/test/otcs-adm.yml"
     },
     {
         "ParameterKey": "OTCSAGSTemplate",
-        "ParameterValue": "https://s3.amazonaws.com/pm-av-opentext-templates-us-east-1-uat/cloudformation/uat/otcs-ags.yml"
+        "ParameterValue": "https://s3.amazonaws.com/pm-av-opentext-templates-us-east-1-test/cloudformation/test/otcs-ags.yml"
     },
     {
         "ParameterKey": "OTCSFENTemplate",
-        "ParameterValue": "https://s3.amazonaws.com/pm-av-opentext-templates-us-east-1-uat/cloudformation/uat/otcs-fen.yml"
+        "ParameterValue": "https://s3.amazonaws.com/pm-av-opentext-templates-us-east-1-test/cloudformation/test/otcs-fen.yml"
     },
     {
         "ParameterKey": "OTCSOTACTemplate",
-        "ParameterValue": "https://s3.amazonaws.com/pm-av-opentext-templates-us-east-1-uat/cloudformation/uat/otcs-otac.yml"
+        "ParameterValue": "https://s3.amazonaws.com/pm-av-opentext-templates-us-east-1-test/cloudformation/test/otcs-otac.yml"
     },
     {
         "ParameterKey": "OTCSOTDSTemplate",
-        "ParameterValue": "https://s3.amazonaws.com/pm-av-opentext-templates-us-east-1-uat/cloudformation/uat/otcs-otds.yml"
+        "ParameterValue": "https://s3.amazonaws.com/pm-av-opentext-templates-us-east-1-test/cloudformation/test/otcs-otds.yml"
     },
     {
         "ParameterKey": "OTACRDSTemplate",
-        "ParameterValue": "https://s3.amazonaws.com/pm-av-opentext-templates-us-east-1-uat/cloudformation/uat/rds-otac.yml"
+        "ParameterValue": "https://s3.amazonaws.com/pm-av-opentext-templates-us-east-1-test/cloudformation/test/rds-otac.yml"
     },
     {
         "ParameterKey": "OTAGOTCSRDSTemplate",
-        "ParameterValue": "https://s3.amazonaws.com/pm-av-opentext-templates-us-east-1-uat/cloudformation/uat/rds-otag-otcs.yml"
+        "ParameterValue": "https://s3.amazonaws.com/pm-av-opentext-templates-us-east-1-test/cloudformation/test/rds-otag-otcs.yml"
     },
     {
         "ParameterKey": "PublicSubnetIds",
@@ -41,19 +41,19 @@
     },
     {
         "ParameterKey": "OTACRDSInstanceSecret",
-        "ParameterValue": "pm/otac-rds/uat"
+        "ParameterValue": "pm/otac-rds/test"
     },
     {
         "ParameterKey": "OTAGOTCSRDSInstanceSecret",
-        "ParameterValue": "pm/otagotcs-rds/uat"
+        "ParameterValue": "pm/otagotcs-rds/test"
     },
     {
         "ParameterKey": "EnvType",
-        "ParameterValue": "UAT"
+        "ParameterValue": "TEST"
     },
     {
         "ParameterKey": "Keyname",
-        "ParameterValue": "assetview-opentext-uat"
+        "ParameterValue": "assetview-opentext-test"
     },
     {
         "ParameterKey": "OtcsAdmInstanceType",

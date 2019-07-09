@@ -1,4 +1,5 @@
 AWSTemplateFormatVersion: "2010-09-09"
+Description: "CloudFormation Stack for OTCS-ADM EC2"
 Mappings: 
   RegionMap: 
     us-east-1: 
@@ -106,6 +107,7 @@ Resources:
     Type: "AWS::EC2::Volume"
     Properties: 
       Size: 100
+      Encrypted: True
       AvailabilityZone: 
         !GetAtt OTCSADM.AvailabilityZone
       Tags:
@@ -119,6 +121,7 @@ Resources:
     Type: "AWS::EC2::Volume"
     Properties: 
       Size: 100
+      Encrypted: True
       AvailabilityZone: 
         !GetAtt OTCSADM.AvailabilityZone
       Tags:
@@ -132,6 +135,7 @@ Resources:
     Type: "AWS::EC2::Volume"
     Properties: 
       Size: 70
+      Encrypted: True
       AvailabilityZone: 
         !GetAtt OTCSADM.AvailabilityZone
       Tags:
@@ -145,6 +149,7 @@ Resources:
     Type: "AWS::EC2::Volume"
     Properties: 
       Size: 100
+      Encrypted: True
       AvailabilityZone: 
         !GetAtt OTCSADM.AvailabilityZone
       Tags:

@@ -41,11 +41,11 @@
     },
     {
         "ParameterKey": "OTACRDSInstanceSecret",
-        "ParameterValue": "pm/otac-rds/uat"
+        "ParameterValue": "pm/otac-rds/dev"
     },
     {
         "ParameterKey": "OTAGOTCSRDSInstanceSecret",
-        "ParameterValue": "pm/otagotcs-rds/uat"
+        "ParameterValue": "pm/otagotcs-rds/dev"
     },
     {
         "ParameterKey": "EnvType",
